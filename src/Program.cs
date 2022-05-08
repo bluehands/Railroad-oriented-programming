@@ -33,6 +33,7 @@ public class RailroadSwitch
                     switch (setSwitchGroupResult.SwitchResult)
                     {
                         case SwitchResult.Success:
+                            SetAudit(operatorResult.Operator, cmd.Direction);
                             return string.Empty;
                         case SwitchResult.SwitchIsStiff:
                         case SwitchResult.TooShort:
@@ -56,6 +57,7 @@ public class RailroadSwitch
                 throw new ArgumentOutOfRangeException();
         }
     }
+    
     private bool IsRailwayTrackFree(out DateTimeOffset estimatedArrivalTime)
     {
         var signal = new RailwaySignal();
@@ -74,5 +76,9 @@ public class RailroadSwitch
         var switchGroup = new SwitchGroup();
         var res = switchGroup.Set(switchDirection, estimatedTimeOfArrival);
         return res;
+    }
+    private void SetAudit(Operator? @operator, SwitchDirection direction)
+    {
+        AuditLog.Info($"{@operator?.Name} has set the switch direction to {direction}");
     }
 }
