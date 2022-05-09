@@ -7,10 +7,10 @@ public static class CertificateParser
     public static OperatorResult GetOperatorFromCertificate(X509Certificate2 cert)
     {
         var validator = new X509CertificateValidator(cert);
-        if (!validator.CanCheckRevocation())
-        {
-            return new OperatorResult(ValidationResult.CrlUnreachable, "Cannot download crl");
-        }
+        //if (!validator.CanCheckRevocation())
+        //{
+        //    return new OperatorResult(ValidationResult.CrlUnreachable, "Cannot download crl");
+        //}
         if (validator.IsExpired())
         {
             return new OperatorResult(ValidationResult.Expired, "Certificate is expired and not valid");
@@ -35,7 +35,7 @@ public static class CertificateParser
 public enum ValidationResult
 {
     Valid,
-    CrlUnreachable,
+    //CrlUnreachable,
     Expired,
     NotYetValid,
     NotTrusted,

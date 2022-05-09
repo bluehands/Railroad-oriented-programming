@@ -18,10 +18,10 @@ public class X509CertificateValidator
     {
         return m_Certificate.SubjectName.Name;
     }
-    public bool CanCheckRevocation()
-    {
-        return m_ValidationResult != ValidationResult.CrlUnreachable;
-    }
+    //public bool CanCheckRevocation()
+    //{
+    //    return m_ValidationResult != ValidationResult.CrlUnreachable;
+    //}
     public bool IsExpired()
     {
         return m_ValidationResult == ValidationResult.Expired;

@@ -6,7 +6,7 @@ var signingCert = args.GetSigningCert();
 var cmd = new SetCommand(signingCert, SwitchDirection.Left);
 
 var railroadSwitch = new RailroadSwitch();
-var errorMessage=railroadSwitch.Set(cmd);
+var errorMessage = railroadSwitch.Set(cmd);
 if (string.IsNullOrEmpty(errorMessage))
 {
     Console.WriteLine("Successfully set the switch");
@@ -27,27 +27,30 @@ public class RailroadSwitch
         switch (operatorResult.ValidationResult)
         {
             case ValidationResult.Valid:
-                if (IsRailwayTrackFree(out DateTimeOffset estimatedTimeOfArrival))
+                var checkTrackResult = CheckRailwayTrack();
+                switch (checkTrackResult.Status)
                 {
-                    var setSwitchGroupResult = SetDirection(cmd.Direction, estimatedTimeOfArrival);
-                    switch (setSwitchGroupResult.SwitchResult)
-                    {
-                        case SwitchResult.Success:
-                            SetAudit(operatorResult.Operator, cmd.Direction);
-                            return string.Empty;
-                        case SwitchResult.SwitchIsStiff:
-                        case SwitchResult.TooShort:
-                        case SwitchResult.UnknownError:
-                            return setSwitchGroupResult.ErrorMessage;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                    case CheckRailwayTrackResultStatus.Free:
+                        var setSwitchGroupResult = SetDirection(cmd.Direction, checkTrackResult.EstimatedArrivalTimeOfNextTrain);
+                        switch (setSwitchGroupResult.SwitchResult)
+                        {
+                            case SwitchResult.Success:
+                                SetAudit(operatorResult.Operator, cmd.Direction);
+                                return string.Empty;
+                            case SwitchResult.SwitchIsStiff:
+                            case SwitchResult.TooShort:
+                            case SwitchResult.UnknownError:
+                                return setSwitchGroupResult.ErrorMessage;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    case CheckRailwayTrackResultStatus.Occupied:
+                    case CheckRailwayTrackResultStatus.SensorFailure:
+                    case CheckRailwayTrackResultStatus.Unknown:
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-                else
-                {
-                    return "Railway track is occupied";
-                }
-            case ValidationResult.CrlUnreachable:
+            //case ValidationResult.CrlUnreachable:
             case ValidationResult.Expired:
             case ValidationResult.NotYetValid:
             case ValidationResult.NotTrusted:
@@ -57,19 +60,27 @@ public class RailroadSwitch
                 throw new ArgumentOutOfRangeException();
         }
     }
-    
-    private bool IsRailwayTrackFree(out DateTimeOffset estimatedArrivalTime)
+
+    private CheckRailwayTrackResult CheckRailwayTrack()
     {
         var signal = new RailwaySignal();
         var seconds = signal.GetArrivalTimeInSeconds();
+        if (seconds < 10)
+        {
+            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.Unknown, "Unknown error");
+        }
+        if (seconds < 20)
+        {
+            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.SensorFailure, "Could not check the track, no sensor data arrived");
+        }
         if (seconds < 30)
         {
-            estimatedArrivalTime = DateTime.MinValue;
-            return false;
+            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.Occupied, "Track is occupied by train");
+
         }
 
-        estimatedArrivalTime = DateTimeOffset.Now.AddSeconds(seconds);
-        return true;
+        return new CheckRailwayTrackResult(DateTimeOffset.Now.AddSeconds(seconds));
+
     }
     private SetSwitchGroupResult SetDirection(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
     {
