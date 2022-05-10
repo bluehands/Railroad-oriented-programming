@@ -1,4 +1,6 @@
-﻿public enum SwitchDirection
+﻿namespace Railroad;
+
+public enum SwitchDirection
 {
     Left,
     Neutral,

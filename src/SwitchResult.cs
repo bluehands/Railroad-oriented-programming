@@ -1,4 +1,6 @@
-﻿public enum SwitchResult
+﻿namespace Railroad;
+
+public enum SwitchResult
 {
     Success,
     SwitchIsStiff,

@@ -1,4 +1,6 @@
-﻿public class CheckRailwayTrackResult
+﻿namespace Railroad;
+
+public class CheckRailwayTrackResult
 {
     public CheckRailwayTrackResult(CheckRailwayTrackResultStatus status, string errorMessage)
     {

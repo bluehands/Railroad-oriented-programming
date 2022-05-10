@@ -1,4 +1,6 @@
-﻿public class RailwaySignal
+﻿namespace Railroad;
+
+public class RailwaySignal
 {
     public int GetArrivalTimeInSeconds()
     {

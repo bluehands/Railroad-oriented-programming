@@ -1,4 +1,6 @@
-﻿public class AuditLog
+﻿namespace Railroad;
+
+public class AuditLog
 {
     public static void Info(string message)
     {

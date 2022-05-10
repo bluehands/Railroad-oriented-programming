@@ -1,6 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Reflection.Metadata.Ecma335;
 using CertificateAPI;
+using FunicularSwitch;
+using Railroad;
 
 var signingCert = args.GetSigningCert();
 var cmd = new SetCommand(signingCert, SwitchDirection.Left);
@@ -18,78 +21,71 @@ else
 Console.WriteLine("Press [ENTER] to exit");
 Console.ReadLine();
 
-public class RailroadSwitch
+namespace Railroad
 {
-    public string Set(SetCommand cmd)
+    public class RailroadSwitch
     {
-        var operatorResult = CertificateParser.GetOperatorFromCertificate(cmd.SigningCert);
-
-        switch (operatorResult.ValidationResult)
+        public string Set(SetCommand cmd)
         {
-            case ValidationResult.Valid:
-                var checkTrackResult = CheckRailwayTrack();
-                switch (checkTrackResult.Status)
-                {
-                    case CheckRailwayTrackResultStatus.Free:
-                        var setSwitchGroupResult = SetDirection(cmd.Direction, checkTrackResult.EstimatedArrivalTimeOfNextTrain);
-                        switch (setSwitchGroupResult.SwitchResult)
+            var operatorResult = CertificateParser.GetOperatorFromCertificate(cmd.SigningCert);
+
+            switch (operatorResult.ValidationResult)
+            {
+                case ValidationResult.Valid:
+                    return CheckRailwayTrack()
+                        .Bind<Unit>(estimatedArrivalTimeOfNextTrain =>
                         {
-                            case SwitchResult.Success:
-                                SetAudit(operatorResult.Operator, cmd.Direction);
-                                return string.Empty;
-                            case SwitchResult.SwitchIsStiff:
-                            case SwitchResult.TooShort:
-                            case SwitchResult.UnknownError:
-                                return setSwitchGroupResult.ErrorMessage;
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
-                    case CheckRailwayTrackResultStatus.Occupied:
-                    case CheckRailwayTrackResultStatus.SensorFailure:
-                    case CheckRailwayTrackResultStatus.Unknown:
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            //case ValidationResult.CrlUnreachable:
-            case ValidationResult.Expired:
-            case ValidationResult.NotYetValid:
-            case ValidationResult.NotTrusted:
-            case ValidationResult.Revoked:
-                return operatorResult.ErrorMessage;
-            default:
-                throw new ArgumentOutOfRangeException();
+                            SetDirection(cmd.Direction, estimatedArrivalTimeOfNextTrain)
+                                .Match(_ =>
+                                {
+                                    SetAudit(operatorResult.Operator, cmd.Direction);
+                                });
+                            return No.Thing;
+                        })
+                        .Match(_ => string.Empty, e => e);
+                //case ValidationResult.CrlUnreachable:
+                case ValidationResult.Expired:
+                case ValidationResult.NotYetValid:
+                case ValidationResult.NotTrusted:
+                case ValidationResult.Revoked:
+                    return operatorResult.ErrorMessage;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
-    }
 
-    private CheckRailwayTrackResult CheckRailwayTrack()
-    {
-        var signal = new RailwaySignal();
-        var seconds = signal.GetArrivalTimeInSeconds();
-        if (seconds < 10)
+        private Result<DateTimeOffset> CheckRailwayTrack()
         {
-            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.Unknown, "Unknown error");
+            var signal = new RailwaySignal();
+            var seconds = signal.GetArrivalTimeInSeconds();
+            if (seconds < 10)
+            {
+                return Result.Error<DateTimeOffset>("Unknown error");
+            }
+            if (seconds < 20)
+            {
+                return Result.Error<DateTimeOffset>("Could not check the track, no sensor data arrived");
+            }
+            if (seconds < 30)
+            {
+                return Result.Error<DateTimeOffset>("Track is occupied by train");
+
+            }
+            return Result.Ok(DateTimeOffset.Now.AddSeconds(seconds));
         }
-        if (seconds < 20)
+        private Result<Unit> SetDirection(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
         {
-            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.SensorFailure, "Could not check the track, no sensor data arrived");
+            var switchGroup = new SwitchGroup();
+            var res = switchGroup.Set(switchDirection, estimatedTimeOfArrival);
+            if (res.SwitchResult != SwitchResult.Success)
+            {
+                return Result.Error<Unit>(res.ErrorMessage);
+            }
+            return Result.Ok(No.Thing);
         }
-        if (seconds < 30)
+        private void SetAudit(Operator? @operator, SwitchDirection direction)
         {
-            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.Occupied, "Track is occupied by train");
-
+            AuditLog.Info($"{@operator?.Name} has set the switch direction to {direction}");
         }
-
-        return new CheckRailwayTrackResult(DateTimeOffset.Now.AddSeconds(seconds));
-
-    }
-    private SetSwitchGroupResult SetDirection(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
-    {
-        var switchGroup = new SwitchGroup();
-        var res = switchGroup.Set(switchDirection, estimatedTimeOfArrival);
-        return res;
-    }
-    private void SetAudit(Operator? @operator, SwitchDirection direction)
-    {
-        AuditLog.Info($"{@operator?.Name} has set the switch direction to {direction}");
     }
 }

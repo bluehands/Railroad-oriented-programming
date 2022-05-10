@@ -1,4 +1,6 @@
-﻿public class SwitchGroup
+﻿namespace Railroad;
+
+public class SwitchGroup
 {
     public SetSwitchGroupResult Set(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
     {
