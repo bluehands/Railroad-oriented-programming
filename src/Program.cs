@@ -50,7 +50,6 @@ public class RailroadSwitch
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-            //case ValidationResult.CrlUnreachable:
             case ValidationResult.Expired:
             case ValidationResult.NotYetValid:
             case ValidationResult.NotTrusted:
