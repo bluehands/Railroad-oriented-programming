@@ -32,18 +32,15 @@ namespace Railroad
             switch (operatorResult.ValidationResult)
             {
                 case ValidationResult.Valid:
-                    return CheckRailwayTrack()
-                        .Bind<Unit>(estimatedArrivalTimeOfNextTrain =>
+                    return CheckRailwayTrack().Bind<Unit>(estimatedArrivalTimeOfNextTrain =>
                         {
-                            SetDirection(cmd.Direction, estimatedArrivalTimeOfNextTrain)
-                                .Match(_ =>
+                            SetDirection(cmd.Direction, estimatedArrivalTimeOfNextTrain).Match(_ =>
                                 {
                                     SetAudit(operatorResult.Operator, cmd.Direction);
                                 });
                             return No.Thing;
                         })
                         .Match(_ => string.Empty, e => e);
-                //case ValidationResult.CrlUnreachable:
                 case ValidationResult.Expired:
                 case ValidationResult.NotYetValid:
                 case ValidationResult.NotTrusted:
