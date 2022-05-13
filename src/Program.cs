@@ -47,6 +47,7 @@ public class RailroadSwitch
                     case CheckRailwayTrackResultStatus.Occupied:
                     case CheckRailwayTrackResultStatus.SensorFailure:
                     case CheckRailwayTrackResultStatus.Unknown:
+                        return checkTrackResult.ErrorMessage;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
