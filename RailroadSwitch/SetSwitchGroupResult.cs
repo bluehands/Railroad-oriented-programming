@@ -1,4 +1,6 @@
-﻿public class SetSwitchGroupResult
+﻿namespace RailroadSwitchGateway;
+
+public class SetSwitchGroupResult
 {
     public SetSwitchGroupResult()
     {

@@ -1,6 +1,8 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
+namespace RailroadSwitchGateway;
+
 public static class ArgsExtension
 {
     public static X509Certificate2 GetSigningCert(this string[] args)

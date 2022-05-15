@@ -1,4 +1,6 @@
-﻿public enum SwitchResult
+﻿namespace RailroadSwitchGateway;
+
+public enum SwitchResult
 {
     Success,
     SwitchIsStiff,
