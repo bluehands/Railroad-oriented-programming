@@ -1,64 +1,115 @@
 ﻿using System.Security.Cryptography.X509Certificates;
+using FunicularSwitch.Generators;
 
 namespace CertificateAPI;
 
 public static class CertificateParser
 {
-    public static OperatorResult GetOperatorFromCertificate(X509Certificate2 cert)
+    public static OperatorInformation GetOperatorFromCertificate(X509Certificate2 cert)
     {
         var validator = new X509CertificateValidator(cert);
-        //if (!validator.CanCheckRevocation())
-        //{
-        //    return new OperatorResult(ValidationResult.CrlUnreachable, "Cannot download crl");
-        //}
         if (validator.IsExpired())
         {
-            return new OperatorResult(ValidationResult.Expired, "Certificate is expired and not valid");
+            return OperatorInformation.Expired;
         }
         if (validator.IsNotYetValid())
         {
-            return new OperatorResult(ValidationResult.NotYetValid, "Certificate is not yet valid");
+            return OperatorInformation.NotYetValid;
         }
         if (validator.IsRevoked())
         {
-            return new OperatorResult(ValidationResult.Revoked, "Certificate is revoked and not valid");
+            return OperatorInformation.Revoked;
         }
         if (!validator.IsTrusted())
         {
-            return new OperatorResult(ValidationResult.NotTrusted, "Certificate is not issued from a trusted root and not valid");
+            return OperatorInformation.NotTrusted;
         }
-        var @operator = new Operator(validator.GetOperator());
-        return new OperatorResult(@operator);
+        return OperatorInformation.Valid(validator.GetOperator());
     }
+}
+
+[FunicularSwitch.Generators.UnionType(CaseOrder = CaseOrder.AsDeclared)]
+public abstract class OperatorInformation
+{
+    public static OperatorInformation Valid(string name) => new Valid_(name);
+
+    public static readonly OperatorInformation Expired = new Expired_();
+    public static readonly OperatorInformation NotYetValid = new NotYetValid_();
+    public static readonly OperatorInformation NotTrusted = new NotTrusted_();
+    public static readonly OperatorInformation Revoked = new Revoked_();
+
+    public class Valid_ : OperatorInformation
+    {
+        public string Name { get; }
+
+        public Valid_(string name) : base(UnionCases.Valid)
+        {
+            Name = name;
+        }
+    }
+
+    public class Expired_ : OperatorInformation
+    {
+        public Expired_() : base(UnionCases.Expired)
+        {
+        }
+    }
+
+    public class NotYetValid_ : OperatorInformation
+    {
+        public NotYetValid_() : base(UnionCases.NotYetValid)
+        {
+        }
+    }
+
+    public class NotTrusted_ : OperatorInformation
+    {
+        public NotTrusted_() : base(UnionCases.NotTrusted)
+        {
+        }
+    }
+
+    public class Revoked_ : OperatorInformation
+    {
+        public Revoked_() : base(UnionCases.Revoked)
+        {
+        }
+    }
+
+    internal enum UnionCases
+    {
+        Valid,
+        Expired,
+        NotYetValid,
+        NotTrusted,
+        Revoked
+    }
+
+    internal UnionCases UnionCase { get; }
+    OperatorInformation(UnionCases unionCase) => UnionCase = unionCase;
+
+    public override string ToString() => Enum.GetName(typeof(UnionCases), UnionCase) ?? UnionCase.ToString();
+    bool Equals(OperatorInformation other) => UnionCase == other.UnionCase;
+
+    public override bool Equals(object? obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((OperatorInformation)obj);
+    }
+
+    public override int GetHashCode() => (int)UnionCase;
 }
 
 public enum ValidationResult
 {
     Valid,
-    //CrlUnreachable,
     Expired,
     NotYetValid,
     NotTrusted,
     Revoked
 }
-public class OperatorResult
-{
-    public OperatorResult(ValidationResult result, string errorMessage)
-    {
-        ValidationResult = result;
-        ErrorMessage = errorMessage;
-    }
-
-    public OperatorResult(Operator @operator)
-    {
-        Operator = @operator;
-        ValidationResult = ValidationResult.Valid;
-        ErrorMessage = string.Empty;
-    }
-
-    public ValidationResult ValidationResult { get; set; }
-    public string ErrorMessage { get; set; }
-    public Operator? Operator { get; set; }
-}
 
 public record Operator(string Name);
+

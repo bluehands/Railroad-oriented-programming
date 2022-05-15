@@ -1,4 +1,4 @@
-﻿namespace Railroad;
+﻿namespace RailroadSwitchGateway;
 
 public class SwitchGroup
 {
