@@ -1,5 +1,4 @@
-﻿using FunicularSwitch;
-using RailroadSwitchGateway;
+﻿using RailroadSwitchGateway;
 
 var signingCert = args.GetSigningCert();
 var cmd = new SetCommand(signingCert, SwitchDirection.Left);
@@ -17,4 +16,3 @@ else
 
 Console.WriteLine("Press [ENTER] to exit");
 Console.ReadLine();
-return;

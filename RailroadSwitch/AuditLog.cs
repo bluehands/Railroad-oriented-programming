@@ -10,8 +10,9 @@ public class AuditLog
 
 public class Audit
 {
-    public static void Log(string @operator, SwitchDirection direction)
+    public static bool Log(string @operator, SwitchDirection direction)
     {
         AuditLog.Info($"{@operator} has set the switch direction to {direction}");
+        return true;
     }
 }

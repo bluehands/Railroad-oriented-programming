@@ -1,4 +1,6 @@
-﻿public class RailwaySignal
+﻿namespace RailroadSwitchGateway;
+
+public class RailwaySignal
 {
     public int GetArrivalTimeInSeconds()
     {

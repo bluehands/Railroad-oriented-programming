@@ -37,23 +37,15 @@ public enum ValidationResult
     NotTrusted,
     Revoked
 }
-public class OperatorResult
+public class OperatorResult(ValidationResult result, string errorMessage)
 {
-    public OperatorResult(ValidationResult result, string errorMessage)
-    {
-        ValidationResult = result;
-        ErrorMessage = errorMessage;
-    }
-
-    public OperatorResult(Operator @operator)
+    public OperatorResult(Operator @operator) : this(ValidationResult.Valid, string.Empty)
     {
         Operator = @operator;
-        ValidationResult = ValidationResult.Valid;
-        ErrorMessage = string.Empty;
     }
 
-    public ValidationResult ValidationResult { get; set; }
-    public string ErrorMessage { get; set; }
+    public ValidationResult ValidationResult { get; set; } = result;
+    public string ErrorMessage { get; set; } = errorMessage;
     public Operator? Operator { get; set; }
 }
 public record Operator(string Name);

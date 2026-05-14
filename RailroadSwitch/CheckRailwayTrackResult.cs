@@ -1,23 +1,15 @@
 ﻿namespace RailroadSwitchGateway;
 
-public class CheckRailwayTrackResult
+public class CheckRailwayTrackResult(CheckRailwayTrackResultStatus status, string errorMessage)
 {
-    public CheckRailwayTrackResult(CheckRailwayTrackResultStatus status, string errorMessage)
-    {
-        Status = status;
-        ErrorMessage = errorMessage;
-    }
-
-    public CheckRailwayTrackResult(DateTimeOffset arrivalTime)
+    public CheckRailwayTrackResult(DateTimeOffset arrivalTime) : this(CheckRailwayTrackResultStatus.Free, string.Empty)
     {
         EstimatedArrivalTimeOfNextTrain = arrivalTime;
-        Status = CheckRailwayTrackResultStatus.Free;
-        ErrorMessage = string.Empty;
     }
 
-    public CheckRailwayTrackResultStatus Status { get; set; }
+    public CheckRailwayTrackResultStatus Status { get; set; } = status;
     public DateTimeOffset EstimatedArrivalTimeOfNextTrain { get; set; }
-    public string ErrorMessage { get; set; }
+    public string ErrorMessage { get; set; } = errorMessage;
 }
 public enum CheckRailwayTrackResultStatus
 {

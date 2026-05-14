@@ -1,19 +1,11 @@
 ﻿namespace RailroadSwitchGateway;
 
-public class SetSwitchGroupResult
+public class SetSwitchGroupResult(SwitchResult result, string errorMessage)
 {
-    public SetSwitchGroupResult()
+    public SetSwitchGroupResult() : this(SwitchResult.Success, string.Empty)
     {
-        SwitchResult = SwitchResult.Success;
-        ErrorMessage = string.Empty;
     }
 
-    public SetSwitchGroupResult(SwitchResult result, string errorMessage)
-    {
-        SwitchResult = result;
-        ErrorMessage = errorMessage;
-    }
-
-    public SwitchResult SwitchResult { get; set; }
-    public string ErrorMessage { get; set; }
+    public SwitchResult SwitchResult { get; set; } = result;
+    public string ErrorMessage { get; set; } = errorMessage;
 }
