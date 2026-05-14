@@ -13,7 +13,7 @@ public class RailroadSwitch
         switch (operatorResult.ValidationResult)
         {
             case ValidationResult.Valid:
-                return InternalSet(cmd.SigningCert, cmd.Direction);
+                return InternalSet(operatorResult.Operator, cmd.Direction);
             case ValidationResult.Expired:
             case ValidationResult.NotYetValid:
             case ValidationResult.NotTrusted:
@@ -24,14 +24,8 @@ public class RailroadSwitch
         }
     }
 
-    private string InternalSet(X509Certificate2 signingCert, SwitchDirection direction)
+    private string InternalSet(Operator? @operator, SwitchDirection direction)
     {
-        var operatorResult = CertificateParser.GetOperatorFromCertificate(signingCert);
-        if (operatorResult.ValidationResult != ValidationResult.Valid)
-        {
-            return operatorResult.ErrorMessage;
-        }
-
         var checkRailwayTrackResult = CheckRailwayTrack();
         if (checkRailwayTrackResult.Status != CheckRailwayTrackResultStatus.Free)
         {
@@ -44,7 +38,7 @@ public class RailroadSwitch
             return setSwitchGroupResult.ErrorMessage;
         }
 
-        var auditResult = AuditSet(operatorResult.Operator, direction);
+        var auditResult = AuditSet(@operator, direction);
         if (!auditResult)
         {
             return "Audit failed";
@@ -82,7 +76,12 @@ public class RailroadSwitch
 
     private bool AuditSet(Operator? @operator, SwitchDirection direction)
     {
-        AuditLog.Info($"{@operator?.Name} has set the switch direction to {direction}");
-        return true;
+        if (@operator != null)
+        {
+            AuditLog.Info($"{@operator.Name} has set the switch direction to {direction}");
+            return true;
+        }
+        AuditLog.Info($"TSNH: Unknown operator has set the switch direction to {direction}");
+        return false;
     }
 }
