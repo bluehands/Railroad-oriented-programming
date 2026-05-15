@@ -8,25 +8,20 @@ public class RailroadSwitch
 {
     public Result<Unit> Set(SetCommand cmd)
     {
-        var operatorResult = CertificateParser.GetOperatorFromCertificate(cmd.SigningCert);
+        var @operator = CertificateParser.GetOperatorFromCertificate(cmd.SigningCert);
 
-        switch (operatorResult.ValidationResult)
-        {
-            case ValidationResult.Valid:
-                return InternalHandleSet(operatorResult.Operator, cmd.Direction);
-            case ValidationResult.Expired:
-            case ValidationResult.NotYetValid:
-                return InternalHandleNotValidOperator(operatorResult.ErrorMessage, cmd.Direction);
-            case ValidationResult.NotTrusted:
-                return InternalHandleUntrustedOperator(operatorResult.ErrorMessage, cmd.Direction);
-            case ValidationResult.Revoked:
-                return Result.Error(Failure.Internal(operatorResult.ErrorMessage));
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+        return @operator.Match(
+            operatorValid => InternalHandleSet(operatorValid, cmd.Direction),
+            operatorExired => InternalHandleNotValidOperator(operatorExired.ErrorMessage, cmd.Direction),
+            operatorNotYetValid => InternalHandleNotValidOperator(operatorNotYetValid.ErrorMessage, cmd.Direction),
+            operatorNotTrusted => InternalHandleUntrustedOperator(operatorNotTrusted.ErrorMessage, cmd.Direction),
+            operatorRevoked => Result.Error(Failure.Internal(operatorRevoked.ErrorMessage)),
+            operatorFailedRevocationCheck => Result.Error(Failure.Internal(operatorFailedRevocationCheck.ErrorMessage))
+        );
+
     }
 
-    private Result<Unit> InternalHandleSet(Operator? @operator, SwitchDirection direction)
+    private Result<Unit> InternalHandleSet(OperatorValid @operator, SwitchDirection direction)
     {
         var x = from eta in CheckRailwayTrack()
                 from precision in SetDirection(direction, eta)
@@ -68,15 +63,10 @@ public class RailroadSwitch
         return res;
     }
 
-    private Result<Unit> AuditSet(Operator? @operator, SwitchDirection direction, DateTimeOffset eta, SwitchPrecision precision)
+    private Result<Unit> AuditSet(OperatorValid @operator, SwitchDirection direction, DateTimeOffset eta, SwitchPrecision precision)
     {
-        if (@operator != null)
-        {
-            AuditLog.Info($"{@operator.Name} has set the switch direction to {direction}. Switch precision: {precision}. ETA: {eta}");
-            return Unit.Default;
-            return No.Thing;
-        }
-        AuditLog.Info($"TSNH: Unknown operator has set the switch direction to {direction}. Switch precision: {precision}. ETA: {eta}");
+        AuditLog.Info($"{@operator.Name} has set the switch direction to {direction}. Switch precision: {precision}. ETA: {eta}");
+        return Unit.Default;
         return No.Thing;
     }
 

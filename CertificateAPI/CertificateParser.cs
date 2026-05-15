@@ -1,57 +1,59 @@
 ﻿using System.Security.Cryptography.X509Certificates;
+using FunicularSwitch.Generators;
 
 namespace CertificateAPI;
 
 public static class CertificateParser
 {
-    public static OperatorResult GetOperatorFromCertificate(X509Certificate2 cert)
+    public static Operator GetOperatorFromCertificate(X509Certificate2 cert)
     {
         var validator = new X509CertificateValidator(cert);
         if (validator.IsExpired())
         {
-            return new OperatorResult(ValidationResult.Expired, "Certificate is expired and not valid");
+            return Operator.Expired("Certificate is expired and not valid");
         }
         if (validator.IsNotYetValid())
         {
-            return new OperatorResult(ValidationResult.NotYetValid, "Certificate is not yet valid");
+            return Operator.NotYetValid("Certificate is not yet valid");
         }
         if (validator.IsRevoked())
         {
-            return new OperatorResult(ValidationResult.Revoked, "Certificate is revoked and not valid");
+            return Operator.Revoked("Certificate is revoked and not valid");
         }
         if (validator.IsCrlUnavailable())
         {
-            return new OperatorResult(ValidationResult.CrlUnavailable, "Certificate Revocation Lits is unavailbe and revocation can not be checked");
+            return Operator.FailedRevocationCheck("Certificate Revocation Lits is unavailbe and revocation can not be checked");
         }
         if (!validator.IsTrusted())
         {
-            return new OperatorResult(ValidationResult.NotTrusted, "Certificate is not issued from a trusted root and not valid");
+            return Operator.NotTrusted("Certificate is not issued from a trusted root and not valid");
         }
-        var @operator = new Operator(validator.GetOperator());
-        return new OperatorResult(@operator);
+
+        return Operator.Valid(validator.GetOperator());
     }
 }
 
+//public class OperatorResult(ValidationResult result, string errorMessage)
+//{
+//    public OperatorResult(Operator @operator) : this(ValidationResult.Valid, string.Empty)
+//    {
+//        Operator = @operator;
+//    }
 
-public enum ValidationResult
-{
-    Valid,
-    Expired,
-    NotYetValid,
-    NotTrusted,
-    Revoked,
-    CrlUnavailable
-}
-public class OperatorResult(ValidationResult result, string errorMessage)
-{
-    public OperatorResult(Operator @operator) : this(ValidationResult.Valid, string.Empty)
-    {
-        Operator = @operator;
-    }
+//    public ValidationResult ValidationResult { get; set; } = result;
+//    public string ErrorMessage { get; set; } = errorMessage;
+//    public Operator? Operator { get; set; }
+//}
+//public record Operator(string Name);
 
-    public ValidationResult ValidationResult { get; set; } = result;
-    public string ErrorMessage { get; set; } = errorMessage;
-    public Operator? Operator { get; set; }
-}
-public record Operator(string Name);
+[UnionType(CaseOrder = CaseOrder.AsDeclared)]
+public abstract partial record Operator { }
+
+public record OperatorValid(string Name) : Operator { }
+public record OperatorExpired(string ErrorMessage) : Operator { }
+public record OperatorNotYetValid(string ErrorMessage) : Operator { }
+public record OperatorNotTrusted(string ErrorMessage) : Operator { }
+public record OperatorRevoked(string ErrorMessage) : Operator { }
+public record OperatorFailedRevocationCheck(string ErrorMessage) : Operator { }
+
 
