@@ -11,7 +11,7 @@ public class X509CertificateValidator
     {
         Certificate = cert;
         var rnd = new Random();
-        ValidationResult = (ValidationResult)rnd.Next(0, 6);
+        ValidationResult = (ValidationResult)rnd.Next(0, 4);
     }
 
     public string GetOperator()
