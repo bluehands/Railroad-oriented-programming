@@ -1,8 +1,6 @@
 ﻿using System.Reactive;
 using FunicularSwitch.Generators;
 
-namespace Railroad;
-
 namespace RailroadSwitchGateway
 {
     [ResultType(ErrorType = typeof(Failure))]
