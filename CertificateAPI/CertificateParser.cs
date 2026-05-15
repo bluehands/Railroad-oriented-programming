@@ -22,7 +22,7 @@ public static class CertificateParser
         }
         if (validator.IsCrlUnavailable())
         {
-            return Operator.FailedRevocationCheck("Certificate Revocation Lits is unavailbe and revocation can not be checked");
+            return Operator.FailedRevocationCheck("Certificate Revocation List is unavailable and revocation can not be checked");
         }
         if (!validator.IsTrusted())
         {
@@ -32,19 +32,6 @@ public static class CertificateParser
         return Operator.Valid(validator.GetOperator());
     }
 }
-
-//public class OperatorResult(ValidationResult result, string errorMessage)
-//{
-//    public OperatorResult(Operator @operator) : this(ValidationResult.Valid, string.Empty)
-//    {
-//        Operator = @operator;
-//    }
-
-//    public ValidationResult ValidationResult { get; set; } = result;
-//    public string ErrorMessage { get; set; } = errorMessage;
-//    public Operator? Operator { get; set; }
-//}
-//public record Operator(string Name);
 
 [UnionType(CaseOrder = CaseOrder.AsDeclared)]
 public abstract partial record Operator { }
