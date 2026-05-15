@@ -7,10 +7,6 @@ public static class CertificateParser
     public static OperatorResult GetOperatorFromCertificate(X509Certificate2 cert)
     {
         var validator = new X509CertificateValidator(cert);
-        //if (!validator.CanCheckRevocation())
-        //{
-        //    return new OperatorResult(ValidationResult.CrlUnreachable, "Cannot download crl");
-        //}
         if (validator.IsExpired())
         {
             return new OperatorResult(ValidationResult.Expired, "Certificate is expired and not valid");
@@ -32,33 +28,25 @@ public static class CertificateParser
     }
 }
 
+
 public enum ValidationResult
 {
     Valid,
-    //CrlUnreachable,
     Expired,
     NotYetValid,
     NotTrusted,
     Revoked
 }
-public class OperatorResult
+public class OperatorResult(ValidationResult result, string errorMessage)
 {
-    public OperatorResult(ValidationResult result, string errorMessage)
-    {
-        ValidationResult = result;
-        ErrorMessage = errorMessage;
-    }
-
-    public OperatorResult(Operator @operator)
+    public OperatorResult(Operator @operator) : this(ValidationResult.Valid, string.Empty)
     {
         Operator = @operator;
-        ValidationResult = ValidationResult.Valid;
-        ErrorMessage = string.Empty;
     }
 
-    public ValidationResult ValidationResult { get; set; }
-    public string ErrorMessage { get; set; }
+    public ValidationResult ValidationResult { get; set; } = result;
+    public string ErrorMessage { get; set; } = errorMessage;
     public Operator? Operator { get; set; }
 }
-
 public record Operator(string Name);
+

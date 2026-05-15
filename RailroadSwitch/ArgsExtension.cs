@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
-namespace Railroad;
+namespace RailroadSwitchGateway;
 
 public static class ArgsExtension
 {
