@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="RailroadSwitchGateway.csproj.lscache" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FunicularSwitch" Version="6.4.1" />
     <PackageReference Include="FunicularSwitch.Generators" Version="4.6.0">
       <PrivateAssets>all</PrivateAssets>

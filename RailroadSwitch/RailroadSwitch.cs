@@ -13,10 +13,12 @@ public class RailroadSwitch
         switch (operatorResult.ValidationResult)
         {
             case ValidationResult.Valid:
-                return InternalSet(operatorResult.Operator, cmd.Direction);
+                return InternalHandleSet(operatorResult.Operator, cmd.Direction);
             case ValidationResult.Expired:
             case ValidationResult.NotYetValid:
+                return InternalHandleNotValidOperator(operatorResult.ErrorMessage, cmd.Direction);
             case ValidationResult.NotTrusted:
+                return InternalHandleUntrustedOperator(operatorResult.ErrorMessage, cmd.Direction);
             case ValidationResult.Revoked:
                 return operatorResult.ErrorMessage;
             default:
@@ -24,7 +26,7 @@ public class RailroadSwitch
         }
     }
 
-    private string InternalSet(Operator? @operator, SwitchDirection direction)
+    private string InternalHandleSet(Operator? @operator, SwitchDirection direction)
     {
         var checkRailwayTrackResult = CheckRailwayTrack();
         if (checkRailwayTrackResult.Status != CheckRailwayTrackResultStatus.Free)
@@ -46,7 +48,7 @@ public class RailroadSwitch
 
         return "Successful set";
     }
-
+    
     private CheckRailwayTrackResult CheckRailwayTrack()
     {
         var signal = new RailwaySignal();
@@ -84,4 +86,15 @@ public class RailroadSwitch
         AuditLog.Info($"TSNH: Unknown operator has set the switch direction to {direction}");
         return false;
     }
+
+    private string InternalHandleUntrustedOperator(string errorMessage, SwitchDirection direction)
+    {
+        return errorMessage;
+    }
+
+    private string InternalHandleNotValidOperator(string errorMessage, SwitchDirection direction)
+    {
+        return errorMessage;
+    }
+
 }
