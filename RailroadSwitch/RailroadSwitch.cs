@@ -1,4 +1,5 @@
 ﻿using System.Reactive;
+using System.Reflection.Metadata;
 using CertificateAPI;
 
 namespace RailroadSwitchGateway;
@@ -27,11 +28,17 @@ public class RailroadSwitch
 
     private Result<Unit> InternalHandleSet(Operator? @operator, SwitchDirection direction)
     {
-        return CheckRailwayTrack().Bind(eta =>
-            SetDirection(direction, eta).Bind(_ =>
-                AuditSet(@operator, direction)
-                )
-            );
+        var x = from eta in CheckRailwayTrack()
+                from precision in SetDirection(direction, eta)
+                from _ in AuditSet(@operator, direction, eta, precision)
+                select _;
+        return x;
+
+        //return CheckRailwayTrack().Bind(eta =>
+        //    SetDirection(direction, eta).Bind(p =>
+        //        AuditSet(@operator, direction, p)
+        //        )
+        //    );
     }
 
     private Result<DateTimeOffset> CheckRailwayTrack()
@@ -54,21 +61,22 @@ public class RailroadSwitch
         return DateTimeOffset.Now.AddSeconds(seconds);
     }
 
-    private Result<Unit> SetDirection(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
+    private Result<SwitchPrecision> SetDirection(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
     {
         var switchGroup = new SwitchGroup();
         var res = switchGroup.Set(switchDirection, estimatedTimeOfArrival);
         return res;
     }
 
-    private Result<Unit> AuditSet(Operator? @operator, SwitchDirection direction)
+    private Result<Unit> AuditSet(Operator? @operator, SwitchDirection direction, DateTimeOffset eta, SwitchPrecision precision)
     {
         if (@operator != null)
         {
-            AuditLog.Info($"{@operator.Name} has set the switch direction to {direction}");
+            AuditLog.Info($"{@operator.Name} has set the switch direction to {direction}. Switch precision: {precision}. ETA: {eta}");
+            return Unit.Default;
             return No.Thing;
         }
-        AuditLog.Info($"TSNH: Unknown operator has set the switch direction to {direction}");
+        AuditLog.Info($"TSNH: Unknown operator has set the switch direction to {direction}. Switch precision: {precision}. ETA: {eta}");
         return No.Thing;
     }
 
