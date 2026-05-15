@@ -27,12 +27,6 @@ public class RailroadSwitch
 
     private Result<Unit> InternalHandleSet(Operator? @operator, SwitchDirection direction)
     {
-        //var x = from eta in CheckRailwayTrack()
-        //        from precision in SetDirection(direction, eta)
-        //        from __ in AuditSet(@operator, direction, precision)
-        //        select __;
-        //return x;
-
         return CheckRailwayTrack().Bind(eta =>
             SetDirection(direction, eta).Bind(p =>
                 AuditSet(@operator, direction, p)
