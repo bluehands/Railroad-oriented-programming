@@ -19,6 +19,10 @@ public static class CertificateParser
         {
             return new OperatorResult(ValidationResult.Revoked, "Certificate is revoked and not valid");
         }
+        if (validator.IsCrlUnavailable())
+        {
+            return new OperatorResult(ValidationResult.CrlUnavailable, "Certificate Revocation Lits is unavailbe and revocation can not be checked");
+        }
         if (!validator.IsTrusted())
         {
             return new OperatorResult(ValidationResult.NotTrusted, "Certificate is not issued from a trusted root and not valid");
@@ -35,7 +39,8 @@ public enum ValidationResult
     Expired,
     NotYetValid,
     NotTrusted,
-    Revoked
+    Revoked,
+    CrlUnavailable
 }
 public class OperatorResult(ValidationResult result, string errorMessage)
 {

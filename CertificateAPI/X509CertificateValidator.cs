@@ -11,7 +11,7 @@ public class X509CertificateValidator
     {
         Certificate = cert;
         var rnd = new Random();
-        ValidationResult = (ValidationResult)rnd.Next(0, 6);
+        ValidationResult = (ValidationResult)rnd.Next(0, 5);
     }
 
     public string GetOperator()
@@ -33,5 +33,9 @@ public class X509CertificateValidator
     public bool IsRevoked()
     {
         return ValidationResult == ValidationResult.Revoked;
+    }
+    public bool IsCrlUnavailable()
+    {
+        return ValidationResult == ValidationResult.CrlUnavailable;
     }
 }
