@@ -27,9 +27,15 @@ public class RailroadSwitch
 
     private Result<Unit> InternalHandleSet(Operator? @operator, SwitchDirection direction)
     {
+        //var x = from eta in CheckRailwayTrack()
+        //        from precision in SetDirection(direction, eta)
+        //        from __ in AuditSet(@operator, direction, precision)
+        //        select __;
+        //return x;
+
         return CheckRailwayTrack().Bind(eta =>
-            SetDirection(direction, eta).Bind(_ =>
-                AuditSet(@operator, direction)
+            SetDirection(direction, eta).Bind(p =>
+                AuditSet(@operator, direction, p)
                 )
             );
     }
@@ -54,21 +60,22 @@ public class RailroadSwitch
         return DateTimeOffset.Now.AddSeconds(seconds);
     }
 
-    private Result<Unit> SetDirection(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
+    private Result<SwitchPrecision> SetDirection(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
     {
         var switchGroup = new SwitchGroup();
         var res = switchGroup.Set(switchDirection, estimatedTimeOfArrival);
         return res;
     }
 
-    private Result<Unit> AuditSet(Operator? @operator, SwitchDirection direction)
+    private Result<Unit> AuditSet(Operator? @operator, SwitchDirection direction, SwitchPrecision precision)
     {
         if (@operator != null)
         {
-            AuditLog.Info($"{@operator.Name} has set the switch direction to {direction}");
+            AuditLog.Info($"{@operator.Name} has set the switch direction to {direction}. Switch precision: {precision}.");
+            return Unit.Default;
             return No.Thing;
         }
-        AuditLog.Info($"TSNH: Unknown operator has set the switch direction to {direction}");
+        AuditLog.Info($"TSNH: Unknown operator has set the switch direction to {direction}. Switch precision: {precision}.");
         return No.Thing;
     }
 

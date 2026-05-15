@@ -6,14 +6,13 @@ namespace RailroadSwitchGateway;
 
 public class SwitchGroup
 {
-    public Result<Unit> Set(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
+    public Result<SwitchPrecision> Set(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
     {
         var rnd = new Random();
         var res = rnd.Next(0, 4);
         if (res == 0)
         {
-            return Unit.Default;
-            return No.Thing;
+            return new SwitchPrecision(rnd.Next(10, 40));
         }
 
         if (res == 1)
@@ -28,3 +27,4 @@ public class SwitchGroup
         return Result.Error(Failure.Internal("Unknown error set the switch"));
     }
 }
+public record SwitchPrecision(int PrecisionInMilimeter);
