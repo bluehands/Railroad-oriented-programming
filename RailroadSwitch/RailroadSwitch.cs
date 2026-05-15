@@ -1,12 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Reactive;
 using CertificateAPI;
 
 namespace RailroadSwitchGateway;
 
 public class RailroadSwitch
 {
-    public string Set(SetCommand cmd)
+    public Result<Unit> Set(SetCommand cmd)
     {
         var operatorResult = CertificateParser.GetOperatorFromCertificate(cmd.SigningCert);
 
@@ -20,81 +19,67 @@ public class RailroadSwitch
             case ValidationResult.NotTrusted:
                 return InternalHandleUntrustedOperator(operatorResult.ErrorMessage, cmd.Direction);
             case ValidationResult.Revoked:
-                return operatorResult.ErrorMessage;
+                return Result.Error(Failure.Internal(operatorResult.ErrorMessage));
             default:
                 throw new ArgumentOutOfRangeException();
         }
     }
 
-    private string InternalHandleSet(Operator? @operator, SwitchDirection direction)
+    private Result<Unit> InternalHandleSet(Operator? @operator, SwitchDirection direction)
     {
-        var checkRailwayTrackResult = CheckRailwayTrack();
-        if (checkRailwayTrackResult.Status != CheckRailwayTrackResultStatus.Free)
-        {
-            return checkRailwayTrackResult.ErrorMessage;
-        }
-
-        var setSwitchGroupResult = SetDirection(direction, checkRailwayTrackResult.EstimatedArrivalTimeOfNextTrain);
-        if (setSwitchGroupResult.SwitchResult != SwitchResult.Success)
-        {
-            return setSwitchGroupResult.ErrorMessage;
-        }
-
-        var auditResult = AuditSet(@operator, direction);
-        if (!auditResult)
-        {
-            return "Audit failed";
-        }
-
-        return "Successful set";
+        return CheckRailwayTrack().Bind(eta =>
+            SetDirection(direction, eta).Bind(_ =>
+                AuditSet(@operator, direction)
+                )
+            );
     }
-    
-    private CheckRailwayTrackResult CheckRailwayTrack()
+
+    private Result<DateTimeOffset> CheckRailwayTrack()
     {
         var signal = new RailwaySignal();
         var seconds = signal.GetArrivalTimeInSeconds();
         if (seconds < 10)
         {
-            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.Unknown, "Unknown error");
+            return Result.Error(Failure.Internal("Unknown error checking the track"));
         }
         if (seconds < 20)
         {
-            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.SensorFailure, "Could not check the track, no sensor data arrived");
+            return Result.Error(Failure.TrackUnavailableSensorFailure("Could not check the track, no sensor data arrived"));
         }
         if (seconds < 30)
         {
-            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.Occupied, "Track is occupied by train");
+            return Result.Error(Failure.TrackUnavailableIsOccupied("Track is occupied by train"));
         }
 
-        return new CheckRailwayTrackResult(DateTimeOffset.Now.AddSeconds(seconds));
+        return DateTimeOffset.Now.AddSeconds(seconds);
     }
 
-    private SetSwitchGroupResult SetDirection(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
+    private Result<Unit> SetDirection(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
     {
         var switchGroup = new SwitchGroup();
         var res = switchGroup.Set(switchDirection, estimatedTimeOfArrival);
         return res;
     }
 
-    private bool AuditSet(Operator? @operator, SwitchDirection direction)
+    private Result<Unit> AuditSet(Operator? @operator, SwitchDirection direction)
     {
         if (@operator != null)
         {
             AuditLog.Info($"{@operator.Name} has set the switch direction to {direction}");
-            return true;
+            return No.Thing;
         }
         AuditLog.Info($"TSNH: Unknown operator has set the switch direction to {direction}");
-        return false;
+        return No.Thing;
     }
 
-    private string InternalHandleUntrustedOperator(string errorMessage, SwitchDirection direction)
+    private Result<Unit> InternalHandleUntrustedOperator(string errorMessage, SwitchDirection _)
     {
-        return errorMessage;
+        return Result.Error(Failure.Internal(errorMessage));
     }
 
-    private string InternalHandleNotValidOperator(string errorMessage, SwitchDirection direction)
+    private Result<Unit> InternalHandleNotValidOperator(string errorMessage, SwitchDirection _)
     {
-        return errorMessage;
+        return Result.Error(Failure.Internal(errorMessage));
     }
 
 }

@@ -1,24 +1,30 @@
-﻿namespace RailroadSwitchGateway;
+﻿
+
+using System.Reactive;
+
+namespace RailroadSwitchGateway;
 
 public class SwitchGroup
 {
-    public SetSwitchGroupResult Set(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
+    public Result<Unit> Set(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
     {
         var rnd = new Random();
-        var res = rnd.Next(0, 3);
+        var res = rnd.Next(0, 4);
         if (res == 0)
         {
-            return new SetSwitchGroupResult();
+            return Unit.Default;
+            return No.Thing;
         }
 
         if (res == 1)
         {
-            return new SetSwitchGroupResult(SwitchResult.SwitchIsStiff, "Mechanical error on switch. Cannot set");
+            return Result.Error(Failure.SwitchUnavailableIsStiff("Mechanical error on switch. Cannot set"));
+            
         }
         if (res == 2)
         {
-            return new SetSwitchGroupResult(SwitchResult.TooShort, "Time to set is too short. Cannot set the switch");
+            return Result.Error(Failure.SwitchUnavailableTooShort("Time to set is too short. Cannot set the switch"));
         }
-        return new SetSwitchGroupResult(SwitchResult.UnknownError, "Unknown error set the switch");
+        return Result.Error(Failure.Internal("Unknown error set the switch"));
     }
 }
