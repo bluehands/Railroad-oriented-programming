@@ -55,7 +55,7 @@ public class RailroadSwitch
         var seconds = signal.GetArrivalTimeInSeconds();
         if (seconds < 10)
         {
-            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.Unknown, "Unknown error");
+            return new CheckRailwayTrackResult(CheckRailwayTrackResultStatus.Unknown, "Unknown error checking the track");
         }
         if (seconds < 20)
         {

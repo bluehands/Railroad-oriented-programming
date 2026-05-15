@@ -5,7 +5,7 @@ public class SwitchGroup
     public SetSwitchGroupResult Set(SwitchDirection switchDirection, DateTimeOffset estimatedTimeOfArrival)
     {
         var rnd = new Random();
-        var res = rnd.Next(0, 3);
+        var res = rnd.Next(0, 4);
         if (res == 0)
         {
             return new SetSwitchGroupResult();
