@@ -22,3 +22,5 @@ public class SwitchGroup
         return new SetSwitchGroupResult(SwitchResult.UnknownError, "Unknown error set the switch");
     }
 }
+
+public record SwitchPrecision(int PrecisionInMilimeter);
