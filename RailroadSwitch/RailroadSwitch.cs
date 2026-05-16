@@ -28,11 +28,11 @@ public class RailroadSwitch
 
     private Result<Unit> InternalHandleSet(Operator? @operator, SwitchDirection direction)
     {
-        var x = from eta in CheckRailwayTrack()
+        var res = from eta in CheckRailwayTrack()
                 from precision in SetDirection(direction, eta)
                 from _ in AuditSet(@operator, direction, eta, precision)
                 select _;
-        return x;
+        return res;
 
         //return CheckRailwayTrack().Bind(eta =>
         //    SetDirection(direction, eta).Bind(p =>
