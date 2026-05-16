@@ -5,9 +5,11 @@ namespace RailroadSwitchGateway;
 
 public static class ArgsExtension
 {
-    public static X509Certificate2 GetSigningCert(this string[] args)
+    extension(string[] args)
     {
-        var cert = @"-----BEGIN CERTIFICATE-----
+        public X509Certificate2 GetSigningCert()
+        {
+            var cert = @"-----BEGIN CERTIFICATE-----
 MIIGPzCCBSegAwIBAgITHgAAAkdfkYL1zRZBYgAIAAACRzANBgkqhkiG9w0BAQsF
 ADBGMRIwEAYKCZImiZPyLGQBGRYCZGUxGTAXBgoJkiaJk/IsZAEZFglCbHVlSGFu
 ZHMxFTATBgNVBAMTDGJsdWVoYW5kcyBDQTAeFw0yMjAyMjMxMDM0NTNaFw0yMzAy
@@ -44,6 +46,12 @@ KXcLx+92ZAyNbOXeEKZlptCpp5QrOqBBS9xX0aDj7w1pDNoC74u3MoiBXkSQRRrL
 ZDwnzFgDaDPfGSXVBbUxI9dIwQ==
 -----END CERTIFICATE-----
 ";
-        return new X509Certificate2(Encoding.ASCII.GetBytes(cert));
+            return new X509Certificate2(Encoding.ASCII.GetBytes(cert));
+        }
+
+        public SwitchDirection GetSwitchDirection()
+        {
+            return SwitchDirection.Left;
+        }
     }
 }
