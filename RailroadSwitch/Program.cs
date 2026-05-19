@@ -1,7 +1,7 @@
 ﻿using RailroadSwitchGateway;
 
 var signingCert = args.GetSigningCert();
-var cmd = new SetCommand(signingCert, SwitchDirection.Left);
+var cmd = new SetCommand(signingCert, args.GetDirection());
 
 var railroadSwitch = new RailroadSwitch();
 var errorMessage = railroadSwitch.Set(cmd);

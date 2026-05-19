@@ -46,4 +46,9 @@ ZDwnzFgDaDPfGSXVBbUxI9dIwQ==
 ";
         return new X509Certificate2(Encoding.ASCII.GetBytes(cert));
     }
+
+    public static SwitchDirection GetDirection(this string[] args)
+    {
+        return SwitchDirection.Left;
+    }
 }
