@@ -29,14 +29,7 @@ public static class CertificateParser
 }
 
 
-public enum ValidationResult
-{
-    Valid,
-    Expired,
-    NotYetValid,
-    NotTrusted,
-    Revoked
-}
+
 public class OperatorResult(ValidationResult result, string errorMessage)
 {
     public OperatorResult(Operator @operator) : this(ValidationResult.Valid, string.Empty)
